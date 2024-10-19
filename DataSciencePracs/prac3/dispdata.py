@@ -38,7 +38,7 @@ def calculate_statistics(data, from_date, to_date):
     return average_per_day, std_dev, highest_calories_day, highest_calories_meal
 
 def main():
-    file_path = "/content/drive/MyDrive/DS_foundation/assignment_4/calories_2.csv"
+    file_path = "data.csv"
     data = read_csv(file_path)
 
     from_date_str = input("Enter the from date (DD/MM/YYYY): ")
