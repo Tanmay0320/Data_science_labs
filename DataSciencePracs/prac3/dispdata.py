@@ -1,77 +1,63 @@
-def read_csv_into_dict(filename):
-    data_dict = {}
-    with open(filename, 'r') as file:
+def read_csv(file_path):
+    data = []
+    with open(file_path, 'r') as file:
         for line in file:
-            line = line.strip()
-            if line:
-                key, value = line.split(',')
-                data_dict[key.strip()] = value.strip()
-    return data_dict
+            if line.strip():  # Avoid empty lines
+                date, calories = line.strip().split(',')
+                data.append((date, float(calories)))
+    return data
 
-def average_calories(data, start_date, end_date):
-    total_calories = 0
-    count = 0
+def date_to_tuple(date_str):
+    day, month, year = map(int, date_str.split('/'))
+    return (year, month, day)
 
-    for date, calories in data.items():
-        if start_date <= date <= end_date:
-            total_calories += calories
-            count += 1
-    
-    if count == 0:
-        return None  
+def tuple_to_date(date_tuple):
+    year, month, day = date_tuple
+    return f"{day:02d}/{month:02d}/{year:04d}"
+
+def is_within_range(date, from_date, to_date):
+    return from_date <= date <= to_date
+
+def calculate_statistics(data, from_date, to_date):
+    filtered_data = [cal for date, cal in data if is_within_range(date_to_tuple(date), from_date, to_date)]
+
+    if not filtered_data:
+        return None, None, None, None
+
+    num_days = len(filtered_data)
+    total_calories = sum(filtered_data)
+    average_per_day = total_calories / num_days
+
+    highest_calories_day = max(filtered_data)
+    highest_calories_meal = highest_calories_day
+
+    mean = average_per_day
+    variance = sum((x - mean) ** 2 for x in filtered_data) / num_days
+    std_dev = (variance) ** 0.5
+
+    return average_per_day, std_dev, highest_calories_day, highest_calories_meal
+
+def main():
+    file_path = "/content/drive/MyDrive/DS_foundation/assignment_4/calories_2.csv"
+    data = read_csv(file_path)
+
+    from_date_str = input("Enter the from date (DD/MM/YYYY): ")
+    to_date_str = input("Enter the to date (DD/MM/YYYY): ")
+
+    from_date = date_to_tuple(from_date_str)
+    to_date = date_to_tuple(to_date_str)
+
+    average_per_day, std_dev, highest_calories_day, highest_calories_meal = calculate_statistics(data, from_date, to_date)
+
+    if average_per_day is None:
+        print("No data available for the given date range.")
     else:
-        average_calories = total_calories / count
-        return average_calories
-    
-def standard_deviation(data, start_date, end_date):
-    count = 0
+        print(f"From Date: {tuple_to_date(from_date)}")
+        print(f"To Date: {tuple_to_date(to_date)}")
+        print(f"Average Calories/Day: {average_per_day:.2f}")
+        print(f"Standard Deviation: {std_dev:.2f}")
+        print(f"Highest Calories/Day: {highest_calories_day:.2f}")
+        print(f"Highest Calories/Meal: {highest_calories_meal:.2f}")
 
-    mean_calories = average_calories(data)
-    
-    sum_squared_diff = 0
-    
-    for date, calories in data.items():
-        if start_date <= date <= end_date:
-            sum_squared_diff += (calories - mean_calories) ** 2
-    
-    variance = sum_squared_diff / count
-    
-    standard_deviation = variance ** 0.5
-    
-    return standard_deviation
-
-def display_dates_and_highest_calories(data_dict, start_date, end_date):
-    aggregate_dict = {}
-    
-    for date, calories in data_dict.items():
-        if start_date <= date <= end_date:
-            if date in aggregate_dict:
-                aggregate_dict[date] += calories
-            else:
-                aggregate_dict[date] = calories
-
-    max_calories = 0
-    max_calories_date = None
-    for date, total_calories in aggregate_dict.items():
-        if total_calories > max_calories:
-            max_calories = total_calories
-            max_calories_date = date
-
-    if max_calories_date is not None:
-        print(f"Date: {max_calories_date}, Highest Calories: {max_calories}")
-        
-def display_dates_and_highest_calories(data_dict, start_date, end_date):
-    max_calories = 0
-    max_calories_date = None
-
-    for date in sorted(data_dict.keys()): 
-        if start_date <= date <= end_date:
-            calories = data_dict[date]
-            print(f"Date: {date}, Calories: {calories}")
-
-            if calories > max_calories:
-                max_calories = calories
-                max_calories_date = date
-    
-    if max_calories_date is not None:
-        print(f"\nDate with the highest calories: {max_calories_date}, Calories: {max_calories}")
+if __name__ == "__main__":
+    main()
